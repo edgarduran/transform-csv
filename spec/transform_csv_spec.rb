@@ -23,35 +23,51 @@ describe TransformCsv do
     end
   end
 
-  describe "standardize" do
-    it "standardizes string values" do
-      names = ["john ", " james", "Joe", nil, 4]
+  describe "standardizing methods" do
+    csv_data = <<~CSV
+      first_name,last_name,dob,member_id,effective_date,expiry_date,phone_number
+    CSV
 
-      converted_names = names.each do |name|
-        TransformCsv.standardize_string(name)
+    temp_csv = Tempfile.new("test_csv")
+    temp_csv.write(csv_data)
+    temp_csv.close
+
+    transformer = TransformCsv.new(temp_csv.path)
+
+    describe '#standardize_string' do
+      it 'returns a stripped string' do
+        expect(transformer.standardize_string("  John  ")).to eq("John")
       end
 
-      expect(converted_names).to eq(["john", "james", "Joe", "N/A", "N/A"])
+      it 'returns nil for non-strings' do
+        expect(transformer.standardize_string(123)).to be_nil
+      end
     end
 
-    it "standardizes dates" do
-      dates = ["12/12/2010", "6/6/99", "1988-02-12", "1-11-88", nil]
-
-      converted_dates = dates.each do |date|
-        TransformCsv.standardize_date(date)
+    describe '#standardize_date' do
+      it 'returns a date in YYYY/MM/DD format' do
+        expect(transformer.standardize_date("01/15/90")).to eq("1990/01/15")
       end
 
-      expect(converted_dates).to eq(["", "", "", "", "N/A"])
+      it 'returns a date in YYYY/MM/DD format for various date formats' do
+        expect(transformer.standardize_date("12/31/23")).to eq("2023/12/31")
+        expect(transformer.standardize_date("12-31-23")).to eq("2023-12-31")
+      end
+
+      it 'returns nil for invalid date input' do
+        expect(transformer.standardize_date("invalid_date")).to be_nil
+      end
     end
 
-    it "standardizes phone numbers" do
-      numbers = ["(303) 887 3456", " 303-333-9987", "13039873345", nil, 4, "44425559884"]
-
-      converted_numbers = numbers.each do |number|
-        TransformCsv.standardize_phone_number(number)
+    describe '#standardize_phone_number' do
+      it 'returns a standardized phone number with country code' do
+        expect(transformer.standardize_phone_number("555-555-5555")).to eq("+15555555555")
       end
 
-      expect(converted_numbers).to eq([])
+      it 'returns "N/A" for invalid phone numbers' do
+        expect(transformer.standardize_phone_number("1234")).to eq("N/A")
+        expect(transformer.standardize_phone_number("123456789012")).to eq("N/A")
+      end
     end
   end
 end
