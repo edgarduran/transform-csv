@@ -10,7 +10,6 @@ class TransformCsv
     # handle file not found
     # !File.exists?(filename) rescue return "Error: file does not exist"
 
-
     @arr_of_rows = []
     CSV.foreach(filename, headers: true, header_converters: :symbol) do |row|
       first_name = row[:first_name]
@@ -31,20 +30,63 @@ class TransformCsv
 
       arr_of_rows <<[first_name, last_name, dob, member_id, effective_date, expiry_date, phone_number]
     end
-    # create_standardized_csv
+  end
+
+  def create_standardized_csv
+    CSV.open(STANDARDIZED_DATA_CSV, 'w') do |csv|
+      csv << ['Fisrt Name', 'Last Name', 'DOB', 'Member ID', 'Effective Date', 'Expiration', 'Phone']
+
+      @arr_of_rows.each do |row|
+        csv << row
+      end
+    end
+
+    # if write csv successful
+    create_report
+  end
+
+  def create_report
+    # create txt file
   end
 
   def standardize_string(str)
     return str.class == String ? str.strip : nil
   end
 
-  def standardize_date(dob)
+  def standardize_date(date)
     parsed = Date.parse(date) rescue nil
 
-    parsed.nil? nil : parsed.strftime('%Y-%m-%d')
+    if parsed
+      return parsed.strftime('%Y/%m/%d')
+    else
+      parsed = Date.strptime(date,"%m/%d/%y") rescue nil
+    end
+
+    if parsed
+      return parsed.strftime('%Y/%m/%d')
+    else
+      parsed = Date.strptime(date,"%m-%d-%y") rescue nil
+    end
+
+    if parsed
+      return parsed.strftime('%Y-%m-%d') rescue nil
+    else
+      return "N/A"
+    end
+
+    return "N/A"
   end
 
   def standardize_phone_number(num)
-    return num
+    number_only = num.gsub(/[-(),. ]/, '')
+
+    case number_only.size
+    when 10
+      number_only.prepend("+1")
+    when 11
+      number_only.prepend("+")
+    else
+      "N/A"
+    end
   end
 end
