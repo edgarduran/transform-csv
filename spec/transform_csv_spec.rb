@@ -22,4 +22,36 @@ describe TransformCsv do
       expect(transformer.arr_of_rows[1]).to eq(["N/A", "N/A", "1995/02/20", "54321", "N/A", "2023/12/31", "N/A"])
     end
   end
+
+  describe "standardize" do
+    it "standardizes string values" do
+      names = ["john ", " james", "Joe", nil, 4]
+
+      converted_names = names.each do |name|
+        TransformCsv.standardize_string(name)
+      end
+
+      expect(converted_names).to eq(["john", "james", "Joe", "N/A", "N/A"])
+    end
+
+    it "standardizes dates" do
+      dates = ["12/12/2010", "6/6/99", "1988-02-12", "1-11-88", nil]
+
+      converted_dates = dates.each do |date|
+        TransformCsv.standardize_date(date)
+      end
+
+      expect(converted_dates).to eq(["", "", "", "", "N/A"])
+    end
+
+    it "standardizes phone numbers" do
+      numbers = ["(303) 887 3456", " 303-333-9987", "13039873345", nil, 4, "44425559884"]
+
+      converted_numbers = numbers.each do |number|
+        TransformCsv.standardize_phone_number(number)
+      end
+
+      expect(converted_numbers).to eq([])
+    end
+  end
 end
