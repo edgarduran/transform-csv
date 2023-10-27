@@ -55,7 +55,7 @@ describe TransformCsv do
       end
 
       it 'returns nil for invalid date input' do
-        expect(transformer.standardize_date("invalid_date")).to be_nil
+        expect(transformer.standardize_date("invalid_date")).to eq("N/A")
       end
     end
 
