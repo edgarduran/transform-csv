@@ -35,11 +35,13 @@ class TransformCsv
   end
 
   def standardize_string(str)
-    return str
+    return str.class == String ? str.strip : nil
   end
 
   def standardize_date(dob)
-    return dob
+    parsed = Date.parse(date) rescue nil
+
+    parsed.nil? nil : parsed.strftime('%Y-%m-%d')
   end
 
   def standardize_phone_number(num)
