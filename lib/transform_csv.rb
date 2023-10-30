@@ -2,11 +2,12 @@ require "csv"
 require "pry"
 
 class TransformCsv
-  attr_accessor :arr_of_rows
+  attr_accessor :arr_of_rows, :rows_processed, :starting, :ending
 
   STANDARDIZED_DATA_CSV = "output.csv"
 
   def initialize(filename)
+    @starting = Time.now
     # handle file not found
     # !File.exists?(filename) rescue return "Error: file does not exist"
 
@@ -41,12 +42,21 @@ class TransformCsv
       end
     end
 
+    @ending = Time.now
+
     # if write csv successful
     create_report
   end
 
   def create_report
+    @rows_processed = @arr_of_rows.count
+    total_time = @ending - @starting
     # create txt file
+    File.open("csv_transform_report.txt", "w") do |file|
+      file.puts("After transform report:")
+      file.puts("Rows processed - #{@rows_processed}")
+      file.puts("Total time -  #{total_time}")
+    end
   end
 
   def standardize_string(str)
